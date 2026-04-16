@@ -4,14 +4,14 @@ const {
   REST,
   Routes,
   SlashCommandBuilder,
-EmbedBuilder,
+  EmbedBuilder,
 } = require('discord.js');
 const fs = require('fs');
 
 const TOKEN = process.env.TOKEN;
-const CLIENT_ID = '1494297574977572864';
-const GUILD_ID = '1368114424350642227';
-const REMINDER_CHANNEL_ID = '1493672330956640477';
+const CLIENT_ID = process.env.CLIENT_ID;
+const GUILD_ID = process.env.GUILD_ID;
+const REMINDER_CHANNEL_ID = process.env.REMINDER_CHANNEL_ID;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -45,7 +45,6 @@ function saveSentReminders(reminders) {
   }
 }
 
-function formatGame(game) {
 function createGameEmbed(game, options = {}) {
   const { reminder = false } = options;
 
@@ -54,7 +53,7 @@ function createGameEmbed(game, options = {}) {
     .setColor(reminder ? 0xeab308 : 0x2563eb)
     .addFields({
       name: 'Wettbewerb',
-      value: game.competition,
+      value: game.competition || 'Unbekannt',
       inline: true,
     })
     .setTimestamp();
@@ -80,22 +79,14 @@ function createGameEmbed(game, options = {}) {
   }
 
   if (reminder) {
-    embed.setDescription('⏰ Startet in 30 Minuten');
+    embed
+      .setDescription('⏰ Dieses Spiel startet in 30 Minuten.')
+      .setFooter({ text: 'The Goalfather Reminder' });
+  } else {
+    embed.setFooter({ text: 'The Goalfather' });
   }
 
   return embed;
-}
-  if (game.time_tbd) {
-    const formattedDate = new Date(game.date).toLocaleDateString('de-DE');
-    return `⚽ ${game.match}\n🗓️ ${formattedDate} (Uhrzeit offen)\n🏆 ${game.competition}`;
-  }
-
-  const formattedDateTime = new Date(game.date).toLocaleString('de-DE', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
-
-  return `⚽ ${game.match}\n🗓️ ${formattedDateTime}\n🏆 ${game.competition}`;
 }
 
 function sortGamesByDate(games) {
@@ -130,30 +121,20 @@ async function checkAndSendReminders() {
     if (game.time_tbd) continue;
 
     const gameDate = new Date(game.date);
-  const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
-const reminderKey = getReminderKey(game);
+    const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
+    const reminderKey = getReminderKey(game);
 
-if (
-  now >= reminderTime &&
-  now <= gameDate &&
-  !sentReminders.includes(reminderKey)
-)
-{
-      const formattedDateTime = gameDate.toLocaleString('de-DE', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      });
-
+    if (
+      now >= reminderTime &&
+      now <= gameDate &&
+      !sentReminders.includes(reminderKey)
+    ) {
       const embed = createGameEmbed(game, { reminder: true });
 
-await channel.send({
-  content: '🔔 Spiel-Erinnerung',
-  embeds: [embed],
-});
-        `⏰ **Reminder:** In 30 Minuten startet **${game.match}**.\n` +
-        `🏆 ${game.competition}\n` +
-        `🗓️ ${formattedDateTime}`
-      );
+      await channel.send({
+        content: '🔔 Spiel-Erinnerung',
+        embeds: [embed],
+      });
 
       sentReminders.push(reminderKey);
       saveSentReminders(sentReminders);
@@ -212,13 +193,13 @@ client.on('interactionCreate', async (interaction) => {
       return;
     }
 
-    const embeds = nextThreeGames.map((game) =>
-  createGameEmbed(game)
-);
+    const embeds = nextThreeGames.map((game) => createGameEmbed(game));
 
-await interaction.reply({
-  content: '**Nächste Spiele:**',
-  embeds,
+    await interaction.reply({
+      content: '**Nächste Spiele:**',
+      embeds,
+    });
+  }
 });
 
 async function startBot() {
