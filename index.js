@@ -90,16 +90,14 @@ async function checkAndSendReminders() {
     if (game.time_tbd) continue;
 
     const gameDate = new Date(game.date);
-    const diffInMs = gameDate - now;
-    const diffInMinutes = Math.floor(diffInMs / 60000);
+  const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
 
-    const reminderKey = getReminderKey(game);
-
-    if (
-      diffInMinutes <= 30 && 
-diffInMinutes >= 29 &&
-      !sentReminders.includes(reminderKey)
-    ) {
+if (
+  now >= reminderTime &&
+  now <= gameDate &&
+  !sentReminders.includes(reminderKey)
+)
+{
       const formattedDateTime = gameDate.toLocaleString('de-DE', {
         dateStyle: 'short',
         timeStyle: 'short',
