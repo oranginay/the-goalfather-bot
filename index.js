@@ -4,6 +4,7 @@ const {
   REST,
   Routes,
   SlashCommandBuilder,
+EmbedBuilder,
 } = require('discord.js');
 const fs = require('fs');
 
@@ -45,6 +46,45 @@ function saveSentReminders(reminders) {
 }
 
 function formatGame(game) {
+function createGameEmbed(game, options = {}) {
+  const { reminder = false } = options;
+
+  const embed = new EmbedBuilder()
+    .setTitle(game.match)
+    .setColor(reminder ? 0xeab308 : 0x2563eb)
+    .addFields({
+      name: 'Wettbewerb',
+      value: game.competition,
+      inline: true,
+    })
+    .setTimestamp();
+
+  if (game.time_tbd) {
+    const formattedDate = new Date(game.date).toLocaleDateString('de-DE');
+    embed.addFields({
+      name: 'Anstoß',
+      value: `${formattedDate}\nUhrzeit offen`,
+      inline: true,
+    });
+  } else {
+    const formattedDateTime = new Date(game.date).toLocaleString('de-DE', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+
+    embed.addFields({
+      name: 'Anstoß',
+      value: formattedDateTime,
+      inline: true,
+    });
+  }
+
+  if (reminder) {
+    embed.setDescription('⏰ Startet in 30 Minuten');
+  }
+
+  return embed;
+}
   if (game.time_tbd) {
     const formattedDate = new Date(game.date).toLocaleDateString('de-DE');
     return `⚽ ${game.match}\n🗓️ ${formattedDate} (Uhrzeit offen)\n🏆 ${game.competition}`;
@@ -104,7 +144,12 @@ if (
         timeStyle: 'short',
       });
 
-      await channel.send(
+      const embed = createGameEmbed(game, { reminder: true });
+
+await channel.send({
+  content: '🔔 Spiel-Erinnerung',
+  embeds: [embed],
+});
         `⏰ **Reminder:** In 30 Minuten startet **${game.match}**.\n` +
         `🏆 ${game.competition}\n` +
         `🗓️ ${formattedDateTime}`
@@ -167,10 +212,13 @@ client.on('interactionCreate', async (interaction) => {
       return;
     }
 
-    const text = nextThreeGames.map(formatGame).join('\n\n');
+    const embeds = nextThreeGames.map((game) =>
+  createGameEmbed(game)
+);
 
-    await interaction.reply(`**Nächste Spiele:**\n\n${text}`);
-  }
+await interaction.reply({
+  content: '**Nächste Spiele:**',
+  embeds,
 });
 
 async function startBot() {
