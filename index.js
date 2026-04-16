@@ -45,6 +45,20 @@ function saveSentReminders(reminders) {
   }
 }
 
+function formatDateTimeBerlin(dateString) {
+  return new Date(dateString).toLocaleString('de-DE', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Berlin',
+  });
+}
+
+function formatDateBerlin(dateString) {
+  return new Date(dateString).toLocaleDateString('de-DE', {
+    timeZone: 'Europe/Berlin',
+  });
+}
+
 function createGameEmbed(game, options = {}) {
   const { reminder = false } = options;
 
@@ -59,18 +73,14 @@ function createGameEmbed(game, options = {}) {
     .setTimestamp();
 
   if (game.time_tbd) {
-    const formattedDate = new Date(game.date).toLocaleDateString('de-DE');
+    const formattedDate = formatDateBerlin(game.date);
     embed.addFields({
       name: 'Anstoß',
       value: `${formattedDate}\nUhrzeit offen`,
       inline: true,
     });
   } else {
-    const formattedDateTime = new Date(game.date).toLocaleString('de-DE', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    });
-
+    const formattedDateTime = formatDateTimeBerlin(game.date);
     embed.addFields({
       name: 'Anstoß',
       value: formattedDateTime,
@@ -95,6 +105,7 @@ function sortGamesByDate(games) {
 
 function getUpcomingGames(games) {
   const now = new Date();
+
   return sortGamesByDate(games).filter((game) => {
     if (game.time_tbd) return true;
     return new Date(game.date) > now;
@@ -138,6 +149,8 @@ async function checkAndSendReminders() {
 
       sentReminders.push(reminderKey);
       saveSentReminders(sentReminders);
+
+      console.log(`Reminder gesendet für: ${game.match}`);
     }
   }
 }

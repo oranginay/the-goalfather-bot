@@ -1,9 +1,4 @@
 [
-{
-    "date": "2026-04-16T18:30:00+02:00",
-    "match": "test vs test",
-    "competition": "test"
-  },
   {
     "date": "2026-04-18T18:00:00+02:00",
     "match": "Österreich vs Deutschland",
@@ -11,12 +6,12 @@
   },
 {
     "date": "2026-04-25T18:15:00+02:00",
-    "match": "FC BAYERN vs FC BARCELONA",
+    "match": "FC Bayern vs FC Barcelona",
     "competition": "Frauen Champions League"
   },
 {
     "date": "2026-05-03T16:30:00+02:00",
-    "match": "FC BARCELONA vs FC BAYERN",
+    "match": "FC Barcelona vs FC Bayern",
     "competition": "Frauen Champions League"
   },
   {
