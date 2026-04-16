@@ -1,0 +1,30 @@
+[
+  {
+    "date": "2026-04-18T18:00:00+02:00",
+    "match": "Österreich vs Deutschland",
+    "competition": "Frauen-Nationalmannschaft"
+  },
+{
+    "date": "2026-04-25T18:15:00+02:00",
+    "match": "FC BAYERN vs FC BARCELONA",
+    "competition": "Frauen Champions League"
+  },
+{
+    "date": "2026-05-03T16:30:00+02:00",
+    "match": "FC BARCELONA vs FC BAYERN",
+    "competition": "Frauen Champions League"
+  },
+  {
+    "date": "2026-06-05",
+    "match": "Deutschland vs Norwegen",
+    "competition": "Frauen-Nationalmannschaft",
+    "time_tbd": true
+  },
+  {
+    "date": "2026-06-09",
+    "match": "Slowenien vs Deutschland",
+    "competition": "Frauen-Nationalmannschaft",
+    "time_tbd": true
+  }
+
+]
