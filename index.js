@@ -91,6 +91,7 @@ async function checkAndSendReminders() {
 
     const gameDate = new Date(game.date);
   const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
+const reminderKey = getReminderKey(game);
 
 if (
   now >= reminderTime &&
