@@ -10,7 +10,7 @@ const fs = require('fs');
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = '1494297574977572864';
 const GUILD_ID = '1368114424350642227';
-const REMINDER_CHANNEL_ID = '1368583058894360659';
+const REMINDER_CHANNEL_ID = '1493672330956640477';
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
