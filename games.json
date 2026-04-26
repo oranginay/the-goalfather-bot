@@ -1,28 +1,32 @@
 [
   {
-    "date": "2026-04-18T18:00:00+02:00",
-    "match": "Österreich vs Deutschland",
-    "competition": "Frauen-Nationalmannschaft"
-  },
-{
-    "date": "2026-04-25T18:15:00+02:00",
-    "match": "FC Bayern vs FC Barcelona",
-    "competition": "Frauen Champions League"
-  },
-{
     "date": "2026-05-03T16:30:00+02:00",
     "match": "FC Barcelona vs FC Bayern",
-    "competition": "Frauen Champions League"
+    "competition": "Frauen Champions League",
+    "team": "women"
   },
   {
     "date": "2026-06-05T20:30:00+02:00",
     "match": "Deutschland vs Norwegen",
-    "competition": "Frauen-Nationalmannschaft"
+    "competition": "Frauen-Nationalmannschaft",
+    "team": "women"
   },
   {
     "date": "2026-06-09T18:00:00+02:00",
     "match": "Slowenien vs Deutschland",
-    "competition": "Frauen-Nationalmannschaft"
+    "competition": "Frauen-Nationalmannschaft",
+    "team": "women"
+  },
+  {
+    "date": "2026-05-31T20:45:00+02:00",
+    "match": "Deutschland vs Finnland",
+    "competition": "Männer-Nationalmannschaft, Freundschaftsspiel",
+    "team": "men"
+  },
+  {
+    "date": "2026-06-06T20:30:00+02:00",
+    "match": "Deutschland vs USA",
+    "competition": "Männer-Nationalmannschaft, Freundschaftsspiel",
+    "team": "men"
   }
-
 ]

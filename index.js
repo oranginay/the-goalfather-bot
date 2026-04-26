@@ -11,7 +11,8 @@ const fs = require('fs');
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
-const REMINDER_CHANNEL_ID = process.env.REMINDER_CHANNEL_ID;
+const REMINDER_CHANNEL_ID_MEN = process.env.REMINDER_CHANNEL_ID_MEN;
+const REMINDER_CHANNEL_ID_WOMEN = process.env.REMINDER_CHANNEL_ID_WOMEN;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -119,7 +120,12 @@ function getReminderKey(game) {
 async function checkAndSendReminders() {
   const games = loadGames();
   const sentReminders = loadSentReminders();
-  const channel = await client.channels.fetch(REMINDER_CHANNEL_ID);
+  const channelId =
+  game.team === 'women'
+    ? REMINDER_CHANNEL_ID_WOMEN
+    : REMINDER_CHANNEL_ID_MEN;
+
+const channel = await client.channels.fetch(channelId);
 
   if (!channel) {
     console.error('Reminder-Channel nicht gefunden.');
