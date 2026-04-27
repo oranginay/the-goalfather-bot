@@ -120,13 +120,6 @@ function getReminderKey(game) {
 async function checkAndSendReminders() {
   const games = loadGames();
   const sentReminders = loadSentReminders();
-  const channelId =
-  game.team === 'women'
-    ? REMINDER_CHANNEL_ID_WOMEN
-    : REMINDER_CHANNEL_ID_MEN;
-
-const channel = await client.channels.fetch(channelId);
-
   if (!channel) {
     console.error('Reminder-Channel nicht gefunden.');
     return;
@@ -135,11 +128,26 @@ const channel = await client.channels.fetch(channelId);
   const now = new Date();
 
   for (const game of games) {
-    if (game.time_tbd) continue;
+  if (game.time_tbd) continue;
 
-    const gameDate = new Date(game.date);
-    const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
-    const reminderKey = getReminderKey(game);
+  const channelId =
+    game.team === 'women'
+      ? REMINDER_CHANNEL_ID_WOMEN
+      : REMINDER_CHANNEL_ID_MEN;
+
+  const channel = await client.channels.fetch(channelId);
+
+  if (!channel) {
+    console.error('Reminder-Channel nicht gefunden.');
+    continue;
+  }
+
+  const gameDate = new Date(game.date);
+  const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
+  const reminderKey = getReminderKey(game);
+
+}
+
 
     if (
       now >= reminderTime &&
