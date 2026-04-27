@@ -125,10 +125,6 @@ async function checkAndSendReminders() {
   for (const game of games) {
     if (game.time_tbd) continue;
 
-    const gameDate = new Date(game.date);
-    const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
-    const reminderKey = getReminderKey(game);
-
     const channelId =
       game.team === 'women'
         ? REMINDER_CHANNEL_ID_WOMEN
@@ -140,6 +136,10 @@ async function checkAndSendReminders() {
       console.error('Reminder-Channel nicht gefunden.');
       continue;
     }
+
+    const gameDate = new Date(game.date);
+    const reminderTime = new Date(gameDate.getTime() - 30 * 60 * 1000);
+    const reminderKey = getReminderKey(game);
 
     if (
       now >= reminderTime &&
@@ -160,14 +160,6 @@ async function checkAndSendReminders() {
     }
   }
 }
-
-const commands = [
-  new SlashCommandBuilder()
-    .setName('spiele')
-    .setDescription('Zeigt die nächsten 3 Spiele')
-    .toJSON(),
-];
-
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 async function registerCommands() {
