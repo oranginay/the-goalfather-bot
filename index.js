@@ -130,6 +130,11 @@ async function checkAndSendReminders() {
         ? REMINDER_CHANNEL_ID_WOMEN
         : REMINDER_CHANNEL_ID_MEN;
 
+    if (!channelId) {
+      console.error(`Kein Reminder-Channel gesetzt für Team: ${game.team}`);
+      continue;
+    }
+
     const channel = await client.channels.fetch(channelId);
 
     if (!channel) {
