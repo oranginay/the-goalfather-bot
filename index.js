@@ -223,7 +223,7 @@ function mapSportsDbEventToWmGame(event) {
   return {
     id: `wm2026_${event.idEvent}`,
     sportsDbId: event.idEvent,
-    date: `${event.dateEvent}T${event.strTime || '00:00:00'}Z`,
+   date: event.strTimestamp || `${event.dateEvent}T${event.strTime || '00:00:00'}`,
     match: event.strEvent,
     home: event.strHomeTeam,
     away: event.strAwayTeam,
