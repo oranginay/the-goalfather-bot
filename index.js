@@ -210,6 +210,11 @@ new SlashCommandBuilder()
   .setName('rankwm')
   .setDescription('Dein WM-Rang')
   .toJSON(),
+
+  new SlashCommandBuilder()
+  .setName('meinetippswm')
+  .setDescription('Zeigt deine abgegebenen WM-Tipps')
+  .toJSON(),
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -458,7 +463,7 @@ client.on('interactionCreate', async (interaction) => {
   });
 }
 if (interaction.commandName === 'tippwm') {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
 
   try {
     const gameId = interaction.options.getString('spielid');
@@ -541,6 +546,38 @@ if (interaction.commandName === 'rankwm') {
     `📊 Dein Rang:\n\nPlatz ${index + 1} mit ${entry.points} Punkten`
   );
 }
+if (interaction.commandName === 'meinetippswm') {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    const userId = interaction.user.id;
+    const games = loadWmGames();
+    const predictions = loadWmPredictions();
+
+    const userPredictions = predictions.filter(p => p.userId === userId);
+
+    if (userPredictions.length === 0) {
+      await interaction.editReply('Du hast noch keine WM-Tipps abgegeben.');
+      return;
+    }
+
+    const lines = userPredictions.map(prediction => {
+      const game = games.find(g => g.id === prediction.gameId);
+      const matchName = game ? game.match : prediction.gameId;
+      const date = game ? formatDateTimeBerlin(game.date) : 'Datum unbekannt';
+
+      return `**${matchName}**\n${date}\nDein Tipp: ${prediction.home}:${prediction.away}`;
+    });
+
+    await interaction.editReply(
+      `📋 **Deine WM-Tipps**\n\n${lines.join('\n\n')}`
+    );
+  } catch (error) {
+    console.error('Fehler bei /meinetippswm:', error);
+    await interaction.editReply('Fehler beim Laden deiner WM-Tipps.');
+  }
+}
+
 });
 
 async function startBot() {
