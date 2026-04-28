@@ -13,6 +13,8 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const REMINDER_CHANNEL_ID_MEN = process.env.REMINDER_CHANNEL_ID_MEN;
 const REMINDER_CHANNEL_ID_WOMEN = process.env.REMINDER_CHANNEL_ID_WOMEN;
+const WORLD_CUP_2026_LEAGUE_ID = '4429';
+const SPORTSDB_API_KEY = process.env.SPORTSDB_API_KEY || '3';
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -165,6 +167,19 @@ async function checkAndSendReminders() {
     }
   }
 }
+
+const commands = [
+  new SlashCommandBuilder()
+    .setName('spiele')
+    .setDescription('Zeigt die nächsten 3 Spiele')
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName('updatewm')
+    .setDescription('Aktualisiert die WM-2026-Spiele von TheSportsDB')
+    .toJSON(),
+];
+
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 async function registerCommands() {
@@ -180,6 +195,66 @@ async function registerCommands() {
   } catch (error) {
     console.error('Fehler bei Slash-Command-Registrierung:', error);
   }
+}
+function saveWmGames(games) {
+  try {
+    fs.writeFileSync('./games_wm_2026.json', JSON.stringify(games, null, 2));
+  } catch (error) {
+    console.error('Fehler beim Speichern von games_wm_2026.json:', error);
+  }
+}
+
+function loadWmGames() {
+  try {
+    const rawData = fs.readFileSync('./games_wm_2026.json', 'utf8');
+    return JSON.parse(rawData);
+  } catch (error) {
+    console.error('Fehler beim Laden von games_wm_2026.json:', error);
+    return [];
+  }
+}
+
+function mapSportsDbEventToWmGame(event) {
+  return {
+    id: `wm2026_${event.idEvent}`,
+    sportsDbId: event.idEvent,
+    date: `${event.dateEvent}T${event.strTime || '00:00:00'}Z`,
+    match: event.strEvent,
+    home: event.strHomeTeam,
+    away: event.strAwayTeam,
+    competition: 'WM 2026',
+    source: 'TheSportsDB',
+    result:
+      event.intHomeScore !== null && event.intAwayScore !== null
+        ? {
+            home: Number(event.intHomeScore),
+            away: Number(event.intAwayScore),
+          }
+        : null,
+  };
+}
+
+async function updateWmGamesFromSportsDb() {
+  const url = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}/eventsnextleague.php?id=${WORLD_CUP_2026_LEAGUE_ID}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`TheSportsDB Fehler: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (!data.events) {
+    console.log('Keine WM-Spiele von TheSportsDB gefunden.');
+    return [];
+  }
+
+  const wmGames = data.events.map(mapSportsDbEventToWmGame);
+
+  saveWmGames(wmGames);
+
+  return wmGames;
 }
 
 client.once('clientReady', async () => {
