@@ -300,7 +300,7 @@ async function updateWmGamesFromSportsDb() {
 
   saveWmGames(wmGames);
   evaluatePredictions();
-  
+
   return wmGames;
 }
 
@@ -362,8 +362,10 @@ function buildWmRanking() {
     );
 
     for (const pred of gamePredictions) {
-      const points = calculatePoints(pred, game.result);
-
+      const points = typeof pred.points === 'number'
+  ? pred.points
+  : calculatePoints(pred, game.result);
+  
       if (!scores[pred.userId]) {
         scores[pred.userId] = 0;
       }
