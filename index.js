@@ -273,27 +273,33 @@ async function updateWmGamesFromSportsDb() {
     console.log('Keine WM-Spiele von TheSportsDB gefunden.');
     return [];
   }
+
   const wmGames = data.events.map(mapSportsDbEventToWmGame);
 
   saveWmGames(wmGames);
 
   return wmGames;
+}
 
- function loadWmPredictions() {
+function loadWmPredictions() {
   try {
     const rawData = fs.readFileSync('./predictions_wm_2026.json', 'utf8');
     return JSON.parse(rawData);
   } catch (error) {
+    console.error('Fehler beim Laden von predictions_wm_2026.json:', error);
     return [];
   }
 }
 
 function saveWmPredictions(predictions) {
-  fs.writeFileSync(
-    './predictions_wm_2026.json',
-    JSON.stringify(predictions, null, 2)
-  );
-}
+  try {
+    fs.writeFileSync(
+      './predictions_wm_2026.json',
+      JSON.stringify(predictions, null, 2)
+    );
+  } catch (error) {
+    console.error('Fehler beim Speichern von predictions_wm_2026.json:', error);
+  }
 }
 
 client.once('clientReady', async () => {
@@ -382,7 +388,7 @@ client.on('interactionCreate', async (interaction) => {
   });
 }
 if (interaction.commandName === 'tippwm') {
-  await interaction.deferReply(); // 🔥 wichtig
+  await interaction.deferReply();
 
   try {
     const gameId = interaction.options.getString('spielid');
@@ -426,10 +432,8 @@ if (interaction.commandName === 'tippwm') {
     await interaction.editReply(
       `Tipp gespeichert: ${game.match} → ${home}:${away}`
     );
-
   } catch (error) {
     console.error('Fehler bei /tippwm:', error);
-
     await interaction.editReply('Fehler beim Speichern des Tipps.');
   }
 }
