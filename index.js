@@ -279,7 +279,7 @@ async function updateWmGamesFromSportsDb() {
 
   return wmGames;
 
-  function loadWmPredictions() {
+ function loadWmPredictions() {
   try {
     const rawData = fs.readFileSync('./predictions_wm_2026.json', 'utf8');
     return JSON.parse(rawData);
