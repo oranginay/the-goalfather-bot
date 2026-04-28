@@ -183,6 +183,24 @@ const commands = [
   .setName('spielewm')
   .setDescription('Zeigt die nächsten 5 WM-Spiele')
   .toJSON(),
+
+  new SlashCommandBuilder()
+  .setName('tippwm')
+  .setDescription('Gib deinen Tipp für ein WM-Spiel ab')
+  .addStringOption(option =>
+    option.setName('spielid')
+      .setDescription('ID des Spiels')
+      .setRequired(true))
+  .addIntegerOption(option =>
+    option.setName('heim')
+      .setDescription('Tore Heimteam')
+      .setRequired(true))
+  .addIntegerOption(option =>
+    option.setName('gast')
+      .setDescription('Tore Auswärtsteam')
+      .setRequired(true))
+  .toJSON(),
+
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -236,6 +254,10 @@ function mapSportsDbEventToWmGame(event) {
             away: Number(event.intAwayScore),
           }
         : null,
+        .addFields({
+  name: 'Spiel-ID',
+  value: game.id,
+})
   };
 }
 
@@ -259,6 +281,22 @@ async function updateWmGamesFromSportsDb() {
   saveWmGames(wmGames);
 
   return wmGames;
+
+  function loadWmPredictions() {
+  try {
+    const rawData = fs.readFileSync('./predictions_wm_2026.json', 'utf8');
+    return JSON.parse(rawData);
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveWmPredictions(predictions) {
+  fs.writeFileSync(
+    './predictions_wm_2026.json',
+    JSON.stringify(predictions, null, 2)
+  );
+}
 }
 
 client.once('clientReady', async () => {
@@ -338,6 +376,50 @@ client.on('interactionCreate', async (interaction) => {
     embeds,
   });
 }
+if (interaction.commandName === 'tippwm') {
+  const gameId = interaction.options.getString('spielid');
+  const home = interaction.options.getInteger('heim');
+  const away = interaction.options.getInteger('gast');
+  const userId = interaction.user.id;
+
+  const games = loadWmGames();
+  const predictions = loadWmPredictions();
+
+  const game = games.find(g => g.id === gameId);
+
+  if (!game) {
+    await interaction.reply('Spiel nicht gefunden.');
+    return;
+  }
+
+  if (new Date(game.date) <= new Date()) {
+    await interaction.reply('Tippabgabe ist geschlossen.');
+    return;
+  }
+
+  const existing = predictions.find(
+    p => p.userId === userId && p.gameId === gameId
+  );
+
+  if (existing) {
+    existing.home = home;
+    existing.away = away;
+  } else {
+    predictions.push({
+      userId,
+      gameId,
+      home,
+      away
+    });
+  }
+
+  saveWmPredictions(predictions);
+
+  await interaction.reply(
+    `Tipp gespeichert: ${game.match} → ${home}:${away}`
+  );
+}
+
 });
 
 async function startBot() {
