@@ -64,6 +64,10 @@ function formatDateBerlin(dateString) {
     timeZone: 'Europe/Berlin',
   });
 }
+function isPredictionClosed(game) {
+  if (!game || game.time_tbd) return true;
+  return new Date(game.date) <= new Date();
+}
 
 function createGameEmbed(game, options = {}) {
   const { reminder = false } = options;
@@ -540,26 +544,31 @@ if (interaction.commandName === 'tippwm') {
       return;
     }
 
-    if (new Date(game.date) <= new Date()) {
-      await interaction.editReply('Tippabgabe ist geschlossen.');
-      return;
-    }
+    if (isPredictionClosed(game)) {
+  await interaction.editReply(
+    'Tippabgabe ist geschlossen. Nach Anpfiff kann der Tipp nicht mehr geändert werden.'
+  );
+  return;
+}
 
     const existing = predictions.find(
       p => p.userId === userId && p.gameId === gameId
     );
 
     if (existing) {
-      existing.home = home;
-      existing.away = away;
-    } else {
-      predictions.push({
-        userId,
-        gameId,
-        home,
-        away
-      });
-    }
+  existing.home = home;
+  existing.away = away;
+
+  delete existing.points;
+  delete existing.evaluatedAt;
+} else {
+  predictions.push({
+    userId,
+    gameId,
+    home,
+    away
+  });
+}
 
     saveWmPredictions(predictions);
 
