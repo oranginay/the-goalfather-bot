@@ -1,0 +1,69 @@
+# Query: predictions
+# ContextLines: 1
+
+27 results - 1 file
+
+index.js:
+   19  const WM_GAMES_FILE = `${DATA_DIR}/games_wm_2026.json`;
+   20: const WM_PREDICTIONS_FILE = `${DATA_DIR}/predictions_wm_2026.json`;
+   21  
+
+  300  
+  301: function loadWmPredictions() {
+  302    try {
+  303:     const rawData = fs.readFileSync('./WM_PREDICTIONS_FILE', 'utf8');
+  304      return JSON.parse(rawData);
+  305    } catch (error) {
+  306:     console.error('Fehler beim Laden von WM_PREDICTIONS_FILE:', error);
+  307      return [];
+
+  310  
+  311: function saveWmPredictions(predictions) {
+  312    try {
+  313      fs.writeFileSync(
+  314:       './WM_PREDICTIONS_FILE',
+  315:       JSON.stringify(predictions, null, 2)
+  316      );
+  317    } catch (error) {
+  318:     console.error('Fehler beim Speichern von WM_PREDICTIONS_FILE:', error);
+  319    }
+
+  346    const games = loadWmGames();
+  347:   const predictions = loadWmPredictions();
+  348  
+
+  353  
+  354:     const gamePredictions = predictions.filter(
+  355        p => p.gameId === game.id
+
+  357  
+  358:     for (const pred of gamePredictions) {
+  359        const points = calculatePoints(pred, game.result);
+
+  477      const games = loadWmGames();
+  478:     const predictions = loadWmPredictions();
+  479  
+
+  491  
+  492:     const existing = predictions.find(
+  493        p => p.userId === userId && p.gameId === gameId
+
+  499      } else {
+  500:       predictions.push({
+  501          userId,
+
+  507  
+  508:     saveWmPredictions(predictions);
+  509  
+
+  557      const games = loadWmGames();
+  558:     const predictions = loadWmPredictions();
+  559  
+  560:     const userPredictions = predictions.filter(p => p.userId === userId);
+  561  
+  562:     if (userPredictions.length === 0) {
+  563        await interaction.editReply('Du hast noch keine WM-Tipps abgegeben.');
+
+  566  
+  567:     const lines = userPredictions.map(prediction => {
+  568        const game = games.find(g => g.id === prediction.gameId);

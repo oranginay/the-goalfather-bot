@@ -15,6 +15,9 @@ const REMINDER_CHANNEL_ID_MEN = process.env.REMINDER_CHANNEL_ID_MEN;
 const REMINDER_CHANNEL_ID_WOMEN = process.env.REMINDER_CHANNEL_ID_WOMEN;
 const WORLD_CUP_2026_LEAGUE_ID = '4429';
 const SPORTSDB_API_KEY = process.env.SPORTSDB_API_KEY || '3';
+const DATA_DIR = process.env.DATA_DIR || '.';
+const WM_GAMES_FILE = `${DATA_DIR}/games_wm_2026.json`;
+const WM_PREDICTIONS_FILE = `${DATA_DIR}/predictions_wm_2026.json`;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -235,18 +238,18 @@ async function registerCommands() {
 }
 function saveWmGames(games) {
   try {
-    fs.writeFileSync('./games_wm_2026.json', JSON.stringify(games, null, 2));
+    fs.writeFileSync('./WM_GAMES_FILE', JSON.stringify(games, null, 2));
   } catch (error) {
-    console.error('Fehler beim Speichern von games_wm_2026.json:', error);
+    console.error('Fehler beim Speichern von WM_GAMES_FILE', error);
   }
 }
 
 function loadWmGames() {
   try {
-    const rawData = fs.readFileSync('./games_wm_2026.json', 'utf8');
+    const rawData = fs.readFileSync('./WM_GAMES_FILE', 'utf8');
     return JSON.parse(rawData);
   } catch (error) {
-    console.error('Fehler beim Laden von games_wm_2026.json:', error);
+    console.error('Fehler beim Laden von WM_GAMES_FILE:', error);
     return [];
   }
 }
