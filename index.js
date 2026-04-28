@@ -253,7 +253,7 @@ function loadWmGames() {
   }
 }
 
-function mapSportsDbEventToWmGame(event) {
+function mapSportsDbEventToWmGame(event, oldGame = null) {
   return {
     id: `wm2026_${event.idEvent}`,
     sportsDbId: event.idEvent,
@@ -270,10 +270,11 @@ function mapSportsDbEventToWmGame(event) {
             away: Number(event.intAwayScore),
           }
         : null,
-        
+     status: event.strStatus || null,
+  evaluated: oldGame?.evaluated || false  
   };
 }
-
+const oldGames = loadWmGames();
 async function updateWmGamesFromSportsDb() {
   const url = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}/eventsseason.php?id=${WORLD_CUP_2026_LEAGUE_ID}&s=2026`;
 
@@ -290,7 +291,10 @@ async function updateWmGamesFromSportsDb() {
     return [];
   }
 
-  const wmGames = data.events.map(mapSportsDbEventToWmGame);
+  const wmGames = data.events.map(event => {
+  const oldGame = oldGames.find(g => g.sportsDbId === event.idEvent);
+  return mapSportsDbEventToWmGame(event, oldGame);
+});
 
   saveWmGames(wmGames);
 
