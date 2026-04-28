@@ -240,7 +240,7 @@ function mapSportsDbEventToWmGame(event) {
 }
 
 async function updateWmGamesFromSportsDb() {
-  const url = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}/eventsnextleague.php?id=${WORLD_CUP_2026_LEAGUE_ID}`;
+  const url = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}/eventsseason.php?id=${WORLD_CUP_2026_LEAGUE_ID}&s=2026`;
 
   const response = await fetch(url);
 
