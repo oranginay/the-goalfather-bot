@@ -375,6 +375,15 @@ client.once('clientReady', async () => {
       console.error('Fehler bei Reminder-Prüfung:', error);
     }
   }, 60 * 1000);
+
+  setInterval(async () => {
+    try {
+      const wmGames = await updateWmGamesFromSportsDb();
+      console.log(`WM-Spiele automatisch aktualisiert: ${wmGames.length}`);
+    } catch (error) {
+      console.error('Fehler bei automatischem WM-Update:', error);
+    }
+  }, 15 * 60 * 1000);
 });
 
 client.on('interactionCreate', async (interaction) => {
