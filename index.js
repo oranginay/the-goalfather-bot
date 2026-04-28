@@ -178,6 +178,11 @@ const commands = [
     .setName('updatewm')
     .setDescription('Aktualisiert die WM-2026-Spiele von TheSportsDB')
     .toJSON(),
+
+    new SlashCommandBuilder()
+  .setName('spielewm')
+  .setDescription('Zeigt die nächsten 5 WM-Spiele')
+  .toJSON(),
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -307,6 +312,32 @@ client.on('interactionCreate', async (interaction) => {
       );
     }
   }
+  if (interaction.commandName === 'spielewm') {
+  const games = loadWmGames();
+
+  const upcomingGames = games
+    .filter(g => new Date(g.date) > new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5);
+
+  if (upcomingGames.length === 0) {
+    await interaction.reply('Keine WM-Spiele gefunden.');
+    return;
+  }
+
+  const embeds = upcomingGames.map((game) =>
+    createGameEmbed({
+      match: game.match,
+      date: game.date,
+      competition: game.competition
+    })
+  );
+
+  await interaction.reply({
+    content: '**Nächste WM-Spiele:**',
+    embeds,
+  });
+}
 });
 
 async function startBot() {
