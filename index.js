@@ -191,9 +191,10 @@ const commands = [
   .setName('tippwm')
   .setDescription('Gib deinen Tipp für ein WM-Spiel ab')
   .addStringOption(option =>
-    option.setName('spielid')
-      .setDescription('ID des Spiels')
-      .setRequired(true))
+ option.setName('spielid')
+ .setDescription('WM-Spiel auswählen')
+ .setRequired(true)
+ .setAutocomplete(true))
   .addIntegerOption(option =>
     option.setName('heim')
       .setDescription('Tore Heimteam')
@@ -365,7 +366,7 @@ function buildWmRanking() {
       const points = typeof pred.points === 'number'
   ? pred.points
   : calculatePoints(pred, game.result);
-  
+
       if (!scores[pred.userId]) {
         scores[pred.userId] = 0;
       }
@@ -427,7 +428,30 @@ client.once('clientReady', async () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+ if (interaction.isAutocomplete()) {
+  if (interaction.commandName !== 'tippwm') return;
+
+  const focusedValue = interaction.options.getFocused().toLowerCase();
+  const games = loadWmGames();
+
+  const choices = games
+   .filter(game => new Date(game.date) > new Date())
+   .filter(game => {
+    const label = `${game.match} ${formatDateTimeBerlin(game.date)}`.toLowerCase();
+    return label.includes(focusedValue);
+   })
+   .sort((a, b) => new Date(a.date) - new Date(b.date))
+   .slice(0, 25)
+   .map(game => ({
+    name: `${formatDateTimeBerlin(game.date)} | ${game.match}`,
+    value: game.id,
+   }));
+
+  await interaction.respond(choices);
+  return;
+ }
+
+ if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === 'spiele') {
     const games = loadGames();
