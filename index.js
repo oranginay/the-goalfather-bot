@@ -254,10 +254,7 @@ function mapSportsDbEventToWmGame(event) {
             away: Number(event.intAwayScore),
           }
         : null,
-        .addFields({
-  name: 'Spiel-ID',
-  value: game.id,
-})
+        
   };
 }
 
@@ -350,7 +347,7 @@ client.on('interactionCreate', async (interaction) => {
       );
     }
   }
-  if (interaction.commandName === 'spielewm') {
+ if (interaction.commandName === 'spielewm') {
   const games = loadWmGames();
 
   const upcomingGames = games
@@ -363,13 +360,21 @@ client.on('interactionCreate', async (interaction) => {
     return;
   }
 
-  const embeds = upcomingGames.map((game) =>
-    createGameEmbed({
+  const embeds = upcomingGames.map((game) => {
+    const embed = createGameEmbed({
       match: game.match,
       date: game.date,
       competition: game.competition
-    })
-  );
+    });
+
+    embed.addFields({
+      name: 'Spiel-ID',
+      value: game.id,
+      inline: false
+    });
+
+    return embed;
+  });
 
   await interaction.reply({
     content: '**Nächste WM-Spiele:**',
