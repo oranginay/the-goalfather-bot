@@ -299,6 +299,8 @@ async function updateWmGamesFromSportsDb() {
   });
 
   saveWmGames(wmGames);
+  evaluatePredictions();
+  
   return wmGames;
 }
 
@@ -373,6 +375,30 @@ function buildWmRanking() {
   return Object.entries(scores)
     .map(([userId, points]) => ({ userId, points }))
     .sort((a, b) => b.points - a.points);
+}
+
+function evaluatePredictions() {
+  const games = loadWmGames();
+  const predictions = loadWmPredictions();
+
+  let changed = false;
+
+  for (const pred of predictions) {
+    const game = games.find(g => g.id === pred.gameId);
+    if (!game || !game.result) continue;
+
+    const points = calculatePoints(pred, game.result);
+
+    if (pred.points !== points) {
+      pred.points = points;
+      pred.evaluatedAt = new Date().toISOString();
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    saveWmPredictions(predictions);
+  }
 }
 
 client.once('clientReady', async () => {
