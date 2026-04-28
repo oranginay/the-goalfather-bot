@@ -201,6 +201,15 @@ const commands = [
       .setRequired(true))
   .toJSON(),
 
+  new SlashCommandBuilder()
+  .setName('leaderboardwm')
+  .setDescription('Top 10 der WM')
+  .toJSON(),
+
+new SlashCommandBuilder()
+  .setName('rankwm')
+  .setDescription('Dein WM-Rang')
+  .toJSON(),
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -300,6 +309,58 @@ function saveWmPredictions(predictions) {
   } catch (error) {
     console.error('Fehler beim Speichern von predictions_wm_2026.json:', error);
   }
+}
+
+function calculatePoints(prediction, result) {
+  if (prediction.home === result.home && prediction.away === result.away) {
+    return 3;
+  }
+
+  const predDiff = prediction.home - prediction.away;
+  const resDiff = result.home - result.away;
+
+  if (predDiff === resDiff) {
+    return 2;
+  }
+
+  if (
+    (predDiff > 0 && resDiff > 0) ||
+    (predDiff < 0 && resDiff < 0) ||
+    (predDiff === 0 && resDiff === 0)
+  ) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function buildWmRanking() {
+  const games = loadWmGames();
+  const predictions = loadWmPredictions();
+
+  const scores = {};
+
+  for (const game of games) {
+    if (!game.result) continue;
+
+    const gamePredictions = predictions.filter(
+      p => p.gameId === game.id
+    );
+
+    for (const pred of gamePredictions) {
+      const points = calculatePoints(pred, game.result);
+
+      if (!scores[pred.userId]) {
+        scores[pred.userId] = 0;
+      }
+
+      scores[pred.userId] += points;
+    }
+  }
+
+  return Object.entries(scores)
+    .map(([userId, points]) => ({ userId, points }))
+    .sort((a, b) => b.points - a.points);
 }
 
 client.once('clientReady', async () => {
@@ -437,7 +498,40 @@ if (interaction.commandName === 'tippwm') {
     await interaction.editReply('Fehler beim Speichern des Tipps.');
   }
 }
+if (interaction.commandName === 'leaderboardwm') {
+  const ranking = buildWmRanking().slice(0, 10);
 
+  if (ranking.length === 0) {
+    await interaction.reply('Noch keine Punkte vorhanden.');
+    return;
+  }
+
+  let text = '🏆 **WM Leaderboard (Top 10)**\n\n';
+
+  ranking.forEach((entry, index) => {
+    text += `${index + 1}. <@${entry.userId}> – ${entry.points} Punkte\n`;
+  });
+
+  await interaction.reply(text);
+}
+
+if (interaction.commandName === 'rankwm') {
+  const ranking = buildWmRanking();
+  const userId = interaction.user.id;
+
+  const index = ranking.findIndex(r => r.userId === userId);
+
+  if (index === -1) {
+    await interaction.reply('Du hast noch keine Punkte.');
+    return;
+  }
+
+  const entry = ranking[index];
+
+  await interaction.reply(
+    `📊 Dein Rang:\n\nPlatz ${index + 1} mit ${entry.points} Punkten`
+  );
+}
 });
 
 async function startBot() {
