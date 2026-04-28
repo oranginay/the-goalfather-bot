@@ -238,15 +238,14 @@ async function registerCommands() {
 }
 function saveWmGames(games) {
   try {
-    fs.writeFileSync('./WM_GAMES_FILE', JSON.stringify(games, null, 2));
+    fs.writeFileSync(WM_GAMES_FILE, JSON.stringify(games, null, 2));
   } catch (error) {
-    console.error('Fehler beim Speichern von WM_GAMES_FILE', error);
+    console.error('Fehler beim Speichern von WM_GAMES_FILE:', error);
   }
 }
-
 function loadWmGames() {
   try {
-    const rawData = fs.readFileSync('./WM_GAMES_FILE', 'utf8');
+    const rawData = fs.readFileSync(WM_GAMES_FILE, 'utf8');
     return JSON.parse(rawData);
   } catch (error) {
     console.error('Fehler beim Laden von WM_GAMES_FILE:', error);
@@ -300,10 +299,10 @@ async function updateWmGamesFromSportsDb() {
 
 function loadWmPredictions() {
   try {
-    const rawData = fs.readFileSync('./predictions_wm_2026.json', 'utf8');
+    const rawData = fs.readFileSync(WM_PREDICTIONS_FILE, 'utf8');
     return JSON.parse(rawData);
   } catch (error) {
-    console.error('Fehler beim Laden von predictions_wm_2026.json:', error);
+    console.error('Fehler beim Laden von WM_PREDICTIONS_FILE:', error);
     return [];
   }
 }
@@ -311,11 +310,11 @@ function loadWmPredictions() {
 function saveWmPredictions(predictions) {
   try {
     fs.writeFileSync(
-      './predictions_wm_2026.json',
+      WM_PREDICTIONS_FILE,
       JSON.stringify(predictions, null, 2)
     );
   } catch (error) {
-    console.error('Fehler beim Speichern von predictions_wm_2026.json:', error);
+    console.error('Fehler beim Speichern von WM_PREDICTIONS_FILE:', error);
   }
 }
 
