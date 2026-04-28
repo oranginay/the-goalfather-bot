@@ -382,47 +382,56 @@ client.on('interactionCreate', async (interaction) => {
   });
 }
 if (interaction.commandName === 'tippwm') {
-  const gameId = interaction.options.getString('spielid');
-  const home = interaction.options.getInteger('heim');
-  const away = interaction.options.getInteger('gast');
-  const userId = interaction.user.id;
+  await interaction.deferReply(); // 🔥 wichtig
 
-  const games = loadWmGames();
-  const predictions = loadWmPredictions();
+  try {
+    const gameId = interaction.options.getString('spielid');
+    const home = interaction.options.getInteger('heim');
+    const away = interaction.options.getInteger('gast');
+    const userId = interaction.user.id;
 
-  const game = games.find(g => g.id === gameId);
+    const games = loadWmGames();
+    const predictions = loadWmPredictions();
 
-  if (!game) {
-    await interaction.reply('Spiel nicht gefunden.');
-    return;
+    const game = games.find(g => g.id === gameId);
+
+    if (!game) {
+      await interaction.editReply('Spiel nicht gefunden.');
+      return;
+    }
+
+    if (new Date(game.date) <= new Date()) {
+      await interaction.editReply('Tippabgabe ist geschlossen.');
+      return;
+    }
+
+    const existing = predictions.find(
+      p => p.userId === userId && p.gameId === gameId
+    );
+
+    if (existing) {
+      existing.home = home;
+      existing.away = away;
+    } else {
+      predictions.push({
+        userId,
+        gameId,
+        home,
+        away
+      });
+    }
+
+    saveWmPredictions(predictions);
+
+    await interaction.editReply(
+      `Tipp gespeichert: ${game.match} → ${home}:${away}`
+    );
+
+  } catch (error) {
+    console.error('Fehler bei /tippwm:', error);
+
+    await interaction.editReply('Fehler beim Speichern des Tipps.');
   }
-
-  if (new Date(game.date) <= new Date()) {
-    await interaction.reply('Tippabgabe ist geschlossen.');
-    return;
-  }
-
-  const existing = predictions.find(
-    p => p.userId === userId && p.gameId === gameId
-  );
-
-  if (existing) {
-    existing.home = home;
-    existing.away = away;
-  } else {
-    predictions.push({
-      userId,
-      gameId,
-      home,
-      away
-    });
-  }
-
-  saveWmPredictions(predictions);
-
-  await interaction.reply(
-    `Tipp gespeichert: ${game.match} → ${home}:${away}`
-  );
 }
 
 });
