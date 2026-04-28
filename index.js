@@ -249,24 +249,6 @@ async function updateWmGamesFromSportsDb() {
     console.log('Keine WM-Spiele von TheSportsDB gefunden.');
     return [];
   }
-  if (interaction.commandName === 'updatewm') {
-  await interaction.deferReply(); // 🔥 GANZ WICHTIG
-
-  try {
-    const wmGames = await updateWmGamesFromSportsDb();
-
-    await interaction.editReply(
-      `WM-Spiele aktualisiert. Gespeicherte Spiele: ${wmGames.length}`
-    );
-  } catch (error) {
-    console.error('Fehler bei /updatewm:', error);
-
-    await interaction.editReply(
-      'Fehler beim Laden der WM-Spiele.'
-    );
-  }
-}
-
   const wmGames = data.events.map(mapSportsDbEventToWmGame);
 
   saveWmGames(wmGames);
@@ -307,6 +289,23 @@ client.on('interactionCreate', async (interaction) => {
       content: '**Nächste Spiele:**',
       embeds,
     });
+  }
+    if (interaction.commandName === 'updatewm') {
+    await interaction.deferReply();
+
+    try {
+      const wmGames = await updateWmGamesFromSportsDb();
+
+      await interaction.editReply(
+        `WM-Spiele aktualisiert. Gespeicherte Spiele: ${wmGames.length}`
+      );
+    } catch (error) {
+      console.error('Fehler bei /updatewm:', error);
+
+      await interaction.editReply(
+        'Fehler beim Laden der WM-Spiele.'
+      );
+    }
   }
 });
 
