@@ -13,6 +13,8 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const GUILD_ID = process.env.GUILD_ID;
 const REMINDER_CHANNEL_ID_MEN = process.env.REMINDER_CHANNEL_ID_MEN;
 const REMINDER_CHANNEL_ID_WOMEN = process.env.REMINDER_CHANNEL_ID_WOMEN;
+const WORLD_CUP_2026_LEAGUE_ID = '4429';
+const SPORTSDB_API_KEY = process.env.SPORTSDB_API_KEY || '3';
 const DATA_DIR = process.env.DATA_DIR || '.';
 const WM_GAMES_FILE = `${DATA_DIR}/games_wm_2026.json`;
 const WM_PREDICTIONS_FILE = `${DATA_DIR}/predictions_wm_2026.json`;
@@ -181,7 +183,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('updatewm')
-    .setDescription('Aktualisiert die WM-2026-Spiele von Api-Sports')
+    .setDescription('Aktualisiert die WM-2026-Spiele von TheSportsDB')
     .toJSON(),
 
     new SlashCommandBuilder()
@@ -256,85 +258,53 @@ function loadWmGames() {
   }
 }
 
-const APISPORTS_KEY = process.env.APISPORTS_KEY;
-const API_FOOTBALL_WORLD_CUP_LEAGUE_ID = 1;
-const API_FOOTBALL_WORLD_CUP_SEASON = 2026;
-
-function mapApiSportsFixtureToWmGame(event) {
-  const homeGoals = event.goals?.home;
-  const awayGoals = event.goals?.away;
-
+function mapSportsDbEventToWmGame(event, oldGame = null) {
   return {
-    id: `wm2026_${event.fixture.id}`,
-    apiSportsFixtureId: event.fixture.id,
-    date: event.fixture.date,
-    match: `${event.teams.home.name} vs ${event.teams.away.name}`,
-    home: event.teams.home.name,
-    away: event.teams.away.name,
+    id: `wm2026_${event.idEvent}`,
+    sportsDbId: event.idEvent,
+   date: event.strTimestamp || `${event.dateEvent}T${event.strTime || '00:00:00'}`,
+    match: event.strEvent,
+    home: event.strHomeTeam,
+    away: event.strAwayTeam,
     competition: 'WM 2026',
-    source: 'API-Sports',
-    status: event.fixture.status?.short || null,
+    source: 'TheSportsDB',
     result:
-      homeGoals !== null &&
-      homeGoals !== undefined &&
-      awayGoals !== null &&
-      awayGoals !== undefined
+      event.intHomeScore !== null && event.intAwayScore !== null
         ? {
-            home: Number(homeGoals),
-            away: Number(awayGoals),
+            home: Number(event.intHomeScore),
+            away: Number(event.intAwayScore),
           }
         : null,
+     status: event.strStatus || null,
+  evaluated: oldGame?.evaluated || false  
   };
 }
 
-async function updateWmGamesFromApiSports() {
-  if (!APISPORTS_KEY) {
-    throw new Error('APISPORTS_KEY fehlt in Railway Variables.');
-  }
+async function updateWmGamesFromSportsDb() {
+  const oldGames = loadWmGames();
 
-  const url =
-    `https://v3.football.api-sports.io/fixtures?league=${API_FOOTBALL_WORLD_CUP_LEAGUE_ID}&season=${API_FOOTBALL_WORLD_CUP_SEASON}`;
+  const url = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}/eventsseason.php?id=${WORLD_CUP_2026_LEAGUE_ID}&s=2026`;
 
-  const response = await fetch(url, {
-    headers: {
-      'x-apisports-key': APISPORTS_KEY,
-    },
-  });
-
-  const rawText = await response.text();
-
-  let data;
-  try {
-    data = JSON.parse(rawText);
-  } catch (error) {
-    console.error('API-Sports Antwort war kein JSON:', rawText);
-    throw new Error('API-Sports Antwort war kein gültiges JSON.');
-  }
-
-  console.log('API-Sports Status:', response.status);
-  console.log('API-Sports WM Response:', {
-    get: data.get,
-    parameters: data.parameters,
-    results: data.results,
-    errors: data.errors,
-  });
+  const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`API-Sports HTTP Fehler ${response.status}: ${rawText}`);
+    throw new Error(`TheSportsDB Fehler: ${response.status}`);
   }
 
-  if (data.errors && Object.keys(data.errors).length > 0) {
-    throw new Error(`API-Sports API Fehler: ${JSON.stringify(data.errors)}`);
-  }
+  const data = await response.json();
 
-  if (!data.response || data.response.length === 0) {
-    console.log('Keine WM-Spiele von API-Sports gefunden.');
+  if (!data.events) {
+    console.log('Keine WM-Spiele von TheSportsDB gefunden.');
     return [];
   }
 
-  const wmGames = data.response.map(mapApiSportsFixtureToWmGame);
+  const wmGames = data.events.map(event => {
+    const oldGame = oldGames.find(g => g.sportsDbId === event.idEvent);
+    return mapSportsDbEventToWmGame(event, oldGame);
+  });
 
   saveWmGames(wmGames);
+  evaluatePredictions();
 
   return wmGames;
 }
@@ -453,7 +423,7 @@ client.once('clientReady', async () => {
 
   setInterval(async () => {
     try {
-      const wmGames = await updateWmGamesFromApiSports();
+      const wmGames = await updateWmGamesFromSportsDb();
       console.log(`WM-Spiele automatisch aktualisiert: ${wmGames.length}`);
     } catch (error) {
       console.error('Fehler bei automatischem WM-Update:', error);
@@ -508,7 +478,7 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.deferReply();
 
     try {
-      const wmGames = await updateWmGamesFromApiSports();
+      const wmGames = await updateWmGamesFromSportsDb();
 
       await interaction.editReply(
         `WM-Spiele aktualisiert. Gespeicherte Spiele: ${wmGames.length}`
