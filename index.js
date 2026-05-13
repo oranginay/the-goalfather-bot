@@ -301,16 +301,31 @@ async function updateWmGamesFromApiSports() {
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`API-Sports Fehler: ${response.status}`);
+  const rawText = await response.text();
+
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (error) {
+    console.error('API-Sports Antwort war kein JSON:', rawText);
+    throw new Error('API-Sports Antwort war kein gültiges JSON.');
   }
 
-  const data = await response.json();
-
+  console.log('API-Sports Status:', response.status);
   console.log('API-Sports WM Response:', {
+    get: data.get,
+    parameters: data.parameters,
     results: data.results,
     errors: data.errors,
   });
+
+  if (!response.ok) {
+    throw new Error(`API-Sports HTTP Fehler ${response.status}: ${rawText}`);
+  }
+
+  if (data.errors && Object.keys(data.errors).length > 0) {
+    throw new Error(`API-Sports API Fehler: ${JSON.stringify(data.errors)}`);
+  }
 
   if (!data.response || data.response.length === 0) {
     console.log('Keine WM-Spiele von API-Sports gefunden.');
