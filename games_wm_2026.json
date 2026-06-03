@@ -1,1 +1,20 @@
-[]
+[[
+  {
+    "date": "2026-06-14T19:00:00+02:00",
+    "match": "Deutschland vs Curaçao",
+    "competition": "FIFA WM 2026",
+    "team": "men"
+  },
+  {
+    "date": "2026-06-20T22:00:00+02:00",
+    "match": "Deutschland vs Elfenbeinküste",
+    "competition": "FIFA WM 2026",
+    "team": "men"
+  },
+  {
+    "date": "2026-06-25T22:00:00+02:00",
+    "match": "Ecuador vs Deutschland",
+    "competition": "FIFA WM 2026",
+    "team": "men"
+  }
+]]
