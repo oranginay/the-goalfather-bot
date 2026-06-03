@@ -224,6 +224,11 @@ const commands = [
     .setName('wm')
     .setDescription('Zeigt die nächsten Deutschland-Spiele der WM 2026')
     .toJSON(),
+
+    new SlashCommandBuilder()
+  .setName('spielede')
+  .setDescription('Zeigt die nächsten Deutschland-Spiele')
+  .toJSON(),
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -313,6 +318,25 @@ client.on('interactionCreate', async (interaction) => {
       embeds,
     });
   }
+  if (interaction.commandName === 'spielede') {
+  const germanyGames = getUpcomingGermanyGames().slice(0, 5);
+
+  if (germanyGames.length === 0) {
+    await interaction.reply(
+      'Keine kommenden Deutschland-Spiele gefunden.'
+    );
+    return;
+  }
+
+  const embeds = germanyGames.map(game =>
+    createGameEmbed(game)
+  );
+
+  await interaction.reply({
+    content: '**🇩🇪 Nächste Deutschland-Spiele:**',
+    embeds,
+  });
+}
 });
 
 async function startBot() {
